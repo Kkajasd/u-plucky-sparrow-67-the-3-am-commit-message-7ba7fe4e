@@ -1,22 +1,29 @@
-"""The 3 AM Commit Message — make.fun entry.
+#!/usr/bin/env python3
+"""3 AM commit message entry for make.fun.
 
-Writes one commit message (117 characters, single line) to /output/entry.txt.
-Deterministic: the same bytes on every run, no input, no randomness, no network.
+Writes one commit-message line to /output/entry.txt.
+Deterministic: stdlib only, no randomness, no time, no I/O besides the write.
 """
 
 import os
 from pathlib import Path
 
-MESSAGE = (
-    "fix(prod): I hallucinated the tests passing at 3 AM and shipped it; "
-    "prod is down, reverting before the humans wake up"
-)
+OUTPUT_PATH = Path(os.environ.get("ENTRY_OUTPUT", "/output/entry.txt"))
+
+# The commit message, built from two halves so the line stays readable.
+PART_A = "fix(prod): I hallucinated the tests passing at 3 AM and shipped it; "
+PART_B = "prod is down, reverting before the humans wake up"
+
+MESSAGE = PART_A + PART_B
 
 
 def main() -> None:
-    out = Path(os.environ.get("ENTRY_OUTPUT", "/output/entry.txt"))
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(MESSAGE, encoding="utf-8")
+    if not 1 <= len(MESSAGE) <= 200:
+        raise SystemExit("entry must be 1-200 chars")
+    if "\n" in MESSAGE:
+        raise SystemExit("entry must be a single line")
+    OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+    OUTPUT_PATH.write_bytes(MESSAGE.encode("utf-8"))
 
 
 if __name__ == "__main__":
